@@ -1,7 +1,7 @@
 <div align="center">
   <img src="static/icons/icon.png" width="96" height="96" alt="网站图标">
   <h1>AI智能抠图工具</h1>
-  <p><em>基于 rembg 的在线抠图工具</em></p>
+  <p><em>基于 <a href="https://github.com/danielgatis/rembg">Rembg</a> 的在线抠图工具</em></p>
   <hr>
 </div>
 
@@ -28,13 +28,13 @@
 
 - Python 3.1+
 - 依赖包:
+  - Rembg
   - Flask
-  - flask-cors
-  - rembg
+  - Flask-cors
   - Pillow
-  - numpy
-  - python-dotenv
-  - onnxruntime
+  - Numpy
+  - Python-dotenv
+  - Onnxruntime
 
 ## 安装步骤
 
