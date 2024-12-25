@@ -19,7 +19,22 @@
   "categories": ["productivity", "photo"],
   "screenshots": [
     {
-      "src": "static/screenshots/screenshot1.png",
+      "src": "static/screenshots/1.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    },
+    {
+      "src": "static/screenshots/2.jpg", 
+      "sizes": "1280x720",
+      "type": "image/png"
+    },
+    {
+        "src": "static/screenshots/3.jpg",
+        "sizes": "1280x720", 
+        "type": "image/png"
+      },
+    {
+      "src": "static/screenshots/4.jpg",
       "sizes": "1280x720",
       "type": "image/png"
     }
