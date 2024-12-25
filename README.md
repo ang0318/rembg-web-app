@@ -22,7 +22,7 @@
 
 ### 手机端
 <div style="display: flex; overflow-x: auto; gap: 20px; padding: 20px 0;">
-  <img src="static/screenshots/1.png" width="300" alt="手机端界面" style="flex: 0 0 auto;">
+  <img src="static/screenshots/1.jpg" width="300" alt="手机端界面" style="flex: 0 0 auto;">
   <img src="static/screenshots/2.jpg" width="300" alt="手机端界面2" style="flex: 0 0 auto;">
   <img src="static/screenshots/3.jpg" width="300" alt="手机端界面3" style="flex: 0 0 auto;">
   <img src="static/screenshots/4.jpg" width="300" alt="手机端界面4" style="flex: 0 0 auto;">
