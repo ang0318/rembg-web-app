@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="static/icons/icon.png" width="96" height="96" alt="网站图标">
+  <img src="static/icons/icon.png" width="96" height="96" alt="网站图标" style="border-radius: 15px;">
   <h1>AI智能抠图工具</h1>
   <p><em>基于 <a href="https://github.com/danielgatis/rembg">Rembg</a> 的在线抠图工具</em></p>
   <hr>
