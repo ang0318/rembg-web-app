@@ -10,18 +10,18 @@
 
 ### 电脑端
 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 20px 0;">
-    <img src="static/screenshots/win1.png" alt="电脑端界面" style="margin: 10px">
-    <img src="static/screenshots/win2.png" alt="电脑端界面2" style="margin: 10px">
-    <img src="static/screenshots/win3.png" alt="电脑端界面3" style="margin: 10px">
-    <img src="static/screenshots/win4.png" alt="电脑端界面4" style="margin: 10px">
+    <img src="static/screenshots/win1.png" width="300" alt="电脑端界面">
+    <img src="static/screenshots/win2.png" width="300" alt="电脑端界面2">
+    <img src="static/screenshots/win3.png" width="300" alt="电脑端界面3">
+    <img src="static/screenshots/win4.png" width="300" alt="电脑端界面4">
 </div>
 
 ### 手机端
-<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 20px 0;">
-  <img src="static/screenshots/1.jpg" alt="手机端界面">
-  <img src="static/screenshots/2.jpg" alt="手机端界面2">
-  <img src="static/screenshots/3.jpg" alt="手机端界面3">
-  <img src="static/screenshots/4.jpg" alt="手机端界面4">
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 20px 0;">
+  <img src="static/screenshots/1.jpg" width="200" alt="手机端界面">
+  <img src="static/screenshots/2.jpg" width="200" alt="手机端界面2">
+  <img src="static/screenshots/3.jpg" width="200" alt="手机端界面3">
+  <img src="static/screenshots/4.jpg" width="200" alt="手机端界面4">
 </div>
 
 
