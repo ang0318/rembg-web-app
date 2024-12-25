@@ -6,6 +6,28 @@
 </div>
 
 一个基于Python和Flask的图片抠图工具,支持AI智能抠图和颜色抠图两种模式。
+## 界面预览
+
+### 电脑端
+<div align="center">
+  <p float="left">
+    <img src="static/screenshots/win1.png" width="400" alt="电脑端界面" style="margin: 10px">
+    <img src="static/screenshots/win2.png" width="400" alt="电脑端界面2" style="margin: 10px">
+  </p>
+  <p float="left">  
+    <img src="static/screenshots/win3.png" width="400" alt="电脑端界面3" style="margin: 10px">
+    <img src="static/screenshots/win4.png" width="400" alt="电脑端界面4" style="margin: 10px">
+  </p>
+</div>
+
+### 手机端
+<div style="display: flex; overflow-x: auto; gap: 20px; padding: 20px 0;">
+  <img src="static/screenshots/1.png" width="300" alt="手机端界面" style="flex: 0 0 auto;">
+  <img src="static/screenshots/2.jpg" width="300" alt="手机端界面2" style="flex: 0 0 auto;">
+  <img src="static/screenshots/3.jpg" width="300" alt="手机端界面3" style="flex: 0 0 auto;">
+  <img src="static/screenshots/4.jpg" width="300" alt="手机端界面4" style="flex: 0 0 auto;">
+</div>
+
 
 ## 功能特点
 
