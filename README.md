@@ -17,7 +17,7 @@
 </div>
 
 ### 手机端
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 20px; padding: 20px 0;">
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 20px 0;">
   <img src="static/screenshots/1.jpg" width="300" alt="手机端界面">
   <img src="static/screenshots/2.jpg" width="300" alt="手机端界面2">
   <img src="static/screenshots/3.jpg" width="300" alt="手机端界面3">
