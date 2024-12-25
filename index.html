@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI智能抠图工具</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- 网站图标 -->
+    <link rel="icon" type="image/png" href="static/icons/icon.png">
+    <link rel="icon" type="image/svg+xml" href="static/icons/icon.svg">
+    
+    <!-- iOS图标和配置 -->
+    <link rel="apple-touch-icon" href="static/icons/icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="抠图工具">
+
+    <!-- 主题颜色 -->
+
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI智能抠图工具</h1>
+            <p>快速移除图片背景，生成透明背景图片</p>
+        </div>
+
+        <div class="upload-section">
+            <input type="file" id="batch-upload" accept="image/*" multiple hidden>
+            <button class="upload-button" onclick="document.getElementById('batch-upload').click()">
+                <span class="button-icon">📂</span>
+                <span>选择图片</span>
+            </button>
+            <p class="upload-hint">支持单张或多张 JPG、PNG 格式图片</p>
+        </div>
+
+        <div class="images-preview hidden">
+            <h3>待处理图片</h3>
+            <div class="images-container">
+                <button class="scroll-button scroll-left" onclick="scrollImages('left')">←</button>
+                <button class="scroll-button scroll-right" onclick="scrollImages('right')">→</button>
+                <div class="images-list"></div>
+            </div>
+            <div class="scroll-indicator"></div>
+        </div>
+
+      
+
+        <div class="control-panel">
+            <div class="control-group">
+                <label>抠图模式</label>
+                <div class="select-controls">
+                    <select id="alpha-matting" class="control-select" onchange="toggleParamsPanel()" aria-label="抠图模式选择">
+                        <option value="false">普通模式</option>
+                        <option value="true">精细模式</option>
+                        <option value="color">颜色抠图</option>
+                    </select>
+                    <select id="only-mask" class="control-select" aria-label="输出模式选择">
+                        <option value="false">完整图片</option>
+                        <option value="true">仅蒙版</option>
+                    </select>
+                </div>
+            </div>
+            <div class="control-group" id="params-panel">
+                <label>参数调节</label>
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <label>前景阈值</label>
+                        <span id="threshold-value">230</span>
+                    </div>
+                    <input type="range" id="alpha-matting-foreground-threshold" 
+                           min="1" max="255" value="230" class="control-range"
+                           aria-label="前景阈值调节" title="前景阈值调节">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <label>背景阈值</label>
+                        <span id="bg-threshold-value">20</span>
+                    </div>
+                    <input type="range" id="alpha-matting-background-threshold" 
+                           min="1" max="255" value="20" class="control-range"
+                           aria-label="背景阈值调节" title="背景阈值调节">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <label>边缘模糊</label>
+                        <span id="blur-value">3</span>
+                    </div>
+                    <input type="range" id="edge-blur" 
+                           min="0" max="100" value="3" class="control-range"
+                           aria-label="边缘模糊调节" title="边缘模糊调节">
+                </div>
+            </div>
+            <div class="control-group">
+                <label>背景设置</label>
+                <div class="background-controls">
+                    <select id="background-type" class="control-select" onchange="toggleBackgroundColor()" aria-label="背景类型选择" title="背景类型选择">
+                        <option value="transparent">透明背景</option>
+                        <option value="color">纯色背景</option>
+                    </select>
+                    <input type="color" id="background-color" class="hidden" value="#ffffff" aria-label="背景颜色选择" title="背景颜色选择">
+                </div>
+            </div>
+            <div class="control-group" id="color-matting-panel" >
+                <label>颜色抠图设置</label>
+                <div class="color-matting-controls">
+                    <input type="color" id="target-color" value="#ffffff" title="选择要抠除的颜色">
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <label>颜色容差</label>
+                            <span id="color-threshold-value">30</span>
+                        </div>
+                        <input type="range" id="color-threshold" 
+                               min="0" max="100" value="30" class="control-range"
+                               aria-label="颜色容差调节" title="颜色容差调节">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div class="controls">
+            <button id="process" class="action-button hidden">开始抠图</button>
+        </div>
+
+        <div class="progress-container hidden">
+            <div class="progress-info">
+                <span class="progress-text">处理进度：</span>
+                <span class="progress-percentage">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress"></div>
+            </div>
+        </div>
+
+        <div class="batch-results hidden">
+            <h3>处理结果</h3>
+            <div class="results-grid"></div>
+        </div>
+    </div>
+
+    <!-- 添加密码输入模态框 -->
+    <div id="password-modal" class="password-modal">
+        <div class="password-form">
+            <h2>请输入访问密码</h2>
+            <input type="password" id="password" placeholder="请输入密码">
+            <button onclick="verifyPassword()">确认</button>
+        </div>
+    </div>
+
+    <script>
+        let envConfig = {
+            devMode: false,
+            enableAuth: true
+        };
+
+        // 获取环境配置的函数
+        async function getEnvConfig() {
+            try {
+                const response = await fetch('/get-env-config');
+                envConfig = await response.json();
+                console.log('Environment config loaded:', envConfig);
+            } catch (error) {
+                console.error('Failed to get environment config:', error);
+            }
+        }
+
+        // 确保在页面加载时首先获取环境配置
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 首先获取环境配置
+            await getEnvConfig();
+            
+            // 然后再检查认证状态
+            checkAuth();
+            
+            // 每5分钟检查一次认证状态
+            setInterval(checkAuth, 5 * 60 * 1000);
+            
+            // 修改密码输入框的回车键监听
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    verifyPassword();
+                }
+            });
+            
+            // 前景阈值滑动条
+            const foregroundSlider = document.getElementById('alpha-matting-foreground-threshold');
+            const foregroundValue = document.getElementById('threshold-value');
+            if(foregroundSlider && foregroundValue) {
+                foregroundSlider.addEventListener('input', function() {
+                    foregroundValue.textContent = this.value;
+                });
+            }
+
+            // 背景阈值滑动条
+            const backgroundSlider = document.getElementById('alpha-matting-background-threshold');
+            const backgroundValue = document.getElementById('bg-threshold-value');
+            if(backgroundSlider && backgroundValue) {
+                backgroundSlider.addEventListener('input', function() {
+                    backgroundValue.textContent = this.value;
+                });
+            }
+
+            // 边缘模糊滑动条
+            const blurSlider = document.getElementById('edge-blur');
+            const blurValue = document.getElementById('blur-value');
+            if(blurSlider && blurValue) {
+                blurSlider.addEventListener('input', function() {
+                    blurValue.textContent = this.value;
+                });
+            }
+
+            // 颜色容差滑动条
+            const colorThresholdSlider = document.getElementById('color-threshold');
+            const colorThresholdValue = document.getElementById('color-threshold-value');
+            if(colorThresholdSlider && colorThresholdValue) {
+                colorThresholdSlider.addEventListener('input', function() {
+                    colorThresholdValue.textContent = this.value;
+                });
+            }
+        });
+
+        const image = document.getElementById('image');
+        const preview = document.getElementById('preview');
+        const processButton = document.getElementById('process');
+        const loading = document.querySelector('.loading');
+
+        let images = [];
+
+        // 添加滚动函数
+        function scrollImages(direction) {
+            const list = document.querySelector('.images-list');
+            const scrollAmount = 300; // 每次滚动的距离
+            
+            if (direction === 'left') {
+                list.scrollBy({
+                    left: -scrollAmount,
+                    behavior: 'smooth'
+                });
+            } else {
+                list.scrollBy({
+                    left: scrollAmount,
+                    behavior: 'smooth'
+                });
+            }
+            
+            // 更新滚动按钮状态
+            setTimeout(updateScrollButtonsVisibility, 300);
+        }
+
+        // 修改文件上传处理函数
+        function handleFileUpload(files) {
+            const imagesList = document.querySelector('.images-list');
+            const previewSection = document.querySelector('.images-preview');
+            const processButton = document.getElementById('process');
+            
+            if (!imagesList || !previewSection) return;
+            
+            previewSection.style.display = 'block';
+            imagesList.innerHTML = '';
+            images = [];
+            
+            // 默认隐藏处理按钮
+            processButton.style.display = 'none';
+            
+            Array.from(files).forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const div = document.createElement('div');
+                    div.className = 'image-item';
+                    div.dataset.index = index;
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="预览图片">
+                        <div class="image-controls">
+                            <button onclick="handleImageTransform(${index}, 'rotateLeft')">
+                                <span>↺</span> 向左旋转
+                            </button>
+                            <button onclick="handleImageTransform(${index}, 'rotateRight')">
+                                <span>↻</span> 向右旋转
+                            </button>
+                            <button onclick="handleImageTransform(${index}, 'flipH')">
+                                <span>↔</span> 水平翻转
+                            </button>
+                            <button onclick="handleImageTransform(${index}, 'flipV')">
+                                <span>↕</span> 垂直翻转
+                            </button>
+                            <button onclick="deleteImage(${index})" class="delete-button">
+                                <span>🗑️</span> 删除
+                            </button>
+                        </div>
+                    `;
+                    imagesList.appendChild(div);
+                    
+                    images[index] = {
+                        file: file,
+                        src: e.target.result,
+                        transforms: [],
+                        currentSrc: e.target.result
+                    };
+
+                    // 当有图片时显示处理按钮
+                    if (images.length > 0) {
+                        processButton.style.display = 'inline-block';
+                        processButton.textContent = '开始抠图';
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // 修改删除图片函数
+        function deleteImage(index) {
+            const imageItem = document.querySelector(`.image-item[data-index="${index}"]`);
+            const processButton = document.getElementById('process');
+            
+            if (imageItem) {
+                imageItem.remove();
+                images[index] = null;
+                
+                // 重新整理images数组
+                images = images.filter(img => img !== null);
+                
+                // 更新所有图片的索引
+                document.querySelectorAll('.image-item').forEach((item, newIndex) => {
+                    item.dataset.index = newIndex;
+                    
+                    // 更新按钮的onclick事件
+                    const buttons = item.querySelectorAll('button');
+                    buttons[0].setAttribute('onclick', `handleImageTransform(${newIndex}, 'rotateLeft')`);
+                    buttons[1].setAttribute('onclick', `handleImageTransform(${newIndex}, 'rotateRight')`);
+                    buttons[2].setAttribute('onclick', `handleImageTransform(${newIndex}, 'flipH')`);
+                    buttons[3].setAttribute('onclick', `handleImageTransform(${newIndex}, 'flipV')`);
+                    buttons[4].setAttribute('onclick', `deleteImage(${newIndex})`);
+                });
+                
+                // 如果没有图片了，隐藏处理按钮和预览区域
+                if (images.length === 0) {
+                    processButton.style.display = 'none';
+                    document.querySelector('.images-preview').style.display = 'none';
+                }
+                
+                updateScrollButtonsVisibility();
+            }
+        }
+
+        // 更新滚动按钮可见
+        function updateScrollButtonsVisibility() {
+            const list = document.querySelector('.images-list');
+            const leftButton = document.querySelector('.scroll-left');
+            const rightButton = document.querySelector('.scroll-right');
+            
+            if (!list || !leftButton || !rightButton) return;
+            
+            const hasOverflow = list.scrollWidth > list.clientWidth;
+            const atStart = list.scrollLeft <= 0;
+            const atEnd = list.scrollLeft >= (list.scrollWidth - list.clientWidth);
+
+            leftButton.style.display = hasOverflow && !atStart ? 'flex' : 'none';
+            rightButton.style.display = hasOverflow && !atEnd ? 'flex' : 'none';
+        }
+
+        // 监听滚动事件
+        document.querySelector('.images-list').addEventListener('scroll', updateScrollButtonsVisibility);
+        window.addEventListener('resize', updateScrollButtonsVisibility);
+
+        // 添加文件上传监听器
+        document.getElementById('batch-upload').addEventListener('change', (event) => {
+            handleFileUpload(event.target.files);
+        });
+
+        // 图片变换处理
+        function handleImageTransform(index, action) {
+            const img = document.querySelector(`.image-item[data-index="${index}"] img`);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            
+            switch(action) {
+                case 'rotateLeft':
+                case 'rotateRight':
+                    const angle = action === 'rotateLeft' ? -90 : 90;
+                    canvas.width = img.naturalHeight;
+                    canvas.height = img.naturalWidth;
+                    ctx.translate(canvas.width/2, canvas.height/2);
+                    ctx.rotate(angle * Math.PI/180);
+                    ctx.drawImage(img, -img.naturalWidth/2, -img.naturalHeight/2);
+                    images[index].transforms.push({type: 'rotate', value: angle});
+                    break;
+                case 'flipH':
+                case 'flipV':
+                    if (action === 'flipH') {
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(img, -canvas.width, 0);
+                    } else {
+                        ctx.scale(1, -1);
+                        ctx.drawImage(img, 0, -canvas.height);
+                    }
+                    images[index].transforms.push({type: 'flip', value: action === 'flipH' ? 'horizontal' : 'vertical'});
+                    break;
+            }
+            
+            // 更新当前图片源
+            const newImageData = canvas.toDataURL();
+            images[index].currentSrc = newImageData;
+            img.src = newImageData;
+        }
+
+        // 添加结果显示函数
+        function addToResults(url, index) {
+            const resultsContainer = document.querySelector('.batch-results');
+            const resultsGrid = document.querySelector('.results-grid');
+            
+            if (!resultsContainer || !resultsGrid) return;
+            
+            resultsContainer.style.display = 'block';
+            
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result-item';
+            resultItem.innerHTML = `
+                <img src="${url}" alt="处理结果 ${index + 1}">
+                <div class="result-controls">
+                    <a href="${url}" download="result_${index + 1}.png" class="download-button">
+                        下载图片
+                    </a>
+                </div>
+            `;
+            
+            resultsGrid.appendChild(resultItem);
+        }
+
+        // 添加进度条控制函数
+        const progressControl = {
+            container: document.querySelector('.progress-container'),
+            bar: document.querySelector('.progress'),
+            text: document.querySelector('.progress-percentage'),
+            
+            // 显示进度条
+            show() {
+                this.container.classList.remove('hidden');
+                this.reset();
+            },
+            
+            // 隐藏进度条
+            hide() {
+                this.container.classList.add('hidden');
+            },
+            
+            // 重置进度条
+            reset() {
+                this.bar.style.width = '0%';
+                this.text.textContent = '0%';
+            },
+            
+            // 更新进度
+            update(progress) {
+                const percentage = Math.min(100, Math.max(0, progress));
+                this.bar.style.width = `${percentage}%`;
+                this.text.textContent = percentage === 100 ? '完成' : `${percentage}%`;
+            },
+            
+            // 完成处理
+            complete() {
+                this.update(100);
+                setTimeout(() => {
+                    this.hide();
+                    this.reset();
+                }, 2000);
+            }
+        };
+
+        // 修改处理按钮事件
+        processButton.addEventListener('click', async () => {
+            try {
+                // 确保envConfig已经初始化
+                if (typeof envConfig === 'undefined') {
+                    await getEnvConfig();
+                }
+
+                const progressContainer = document.querySelector('.progress-container');
+                const progressBar = document.querySelector('.progress');
+                const progressText = document.querySelector('.progress-percentage');
+                const resultsGrid = document.querySelector('.results-grid');
+
+                // 重置进度条和结果区域
+                progressBar.style.width = '0%';
+                progressText.textContent = '0%';
+                progressContainer.classList.remove('hidden');
+                resultsGrid.innerHTML = '';  // 清空之前的结果
+                
+                progressControl.show();
+                processButton.disabled = true;
+                processButton.textContent = '处理中...';
+
+                // 只在启用认证时检查认证状态
+                if (envConfig.enableAuth) {
+                    const authResponse = await fetch('/check-auth', {
+                        method: 'GET',
+                        credentials: 'include'
+                    });
+                    
+                    if (!authResponse.ok) {
+                        alert('请先输入访问密码');
+                        document.getElementById('password-modal').style.display = 'flex';
+                        return;
+                    }
+                }
+
+                for (let i = 0; i < images.length; i++) {
+                    try {
+                        const formData = new FormData();
+                        // 使用变换后的图片数据而不是原始图片
+                        const blob = await fetch(images[i].currentSrc).then(r => r.blob());
+                        formData.append('file', blob);
+                        formData.append('alpha_matting', document.getElementById('alpha-matting').value);
+                        formData.append('alpha_matting_foreground_threshold', 
+                            document.getElementById('alpha-matting-foreground-threshold').value);
+                        formData.append('alpha_matting_background_threshold',
+                            document.getElementById('alpha-matting-background-threshold').value);
+                        formData.append('edge_blur', document.getElementById('edge-blur').value);
+                        formData.append('only_mask', document.getElementById('only-mask').value);
+                        formData.append('background_type', document.getElementById('background-type').value);
+                        formData.append('background_color', document.getElementById('background-color').value);
+                        formData.append('matting_mode', document.getElementById('alpha-matting').value);
+                        formData.append('target_color', document.getElementById('target-color').value);
+                        formData.append('color_threshold', document.getElementById('color-threshold').value);
+                        
+                        const response = await fetch('/remove-bg', {
+                            method: 'POST',
+                            body: formData,
+                            credentials: 'include'
+                        });
+                        
+                        const data = await response.blob();
+                        const url = URL.createObjectURL(data);
+                        
+                        // 更新进度
+                        const progress = ((i + 1) / images.length * 100).toFixed(0);
+                        progressControl.update(parseInt(progress));
+                        
+                        // 显示结果
+                        addToResults(url, i);
+                        
+                    } catch (error) {
+                        console.error(`处理第${i + 1}张图片失败:`, error);
+                    }
+                }
+                
+                // 处理完成
+                progressControl.complete();
+                processButton.disabled = false;
+                processButton.textContent = '开始处理';
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('处理失败：' + error.message);
+                
+                // 发生错误时重置状态
+                processButton.disabled = false;
+                processButton.textContent = '开始处理';
+                progressControl.hide();
+            }
+        });
+
+        function toggleParamsPanel() {
+            const mode = document.getElementById('alpha-matting').value;
+            const paramsPanel = document.getElementById('params-panel');
+            const colorMattingPanel = document.getElementById('color-matting-panel');
+            
+            if (mode === 'true') {
+                paramsPanel.style.display = 'block';
+                colorMattingPanel.style.display = 'none';
+            } else if (mode === 'color') {
+                paramsPanel.style.display = 'none';
+                colorMattingPanel.style.display = 'block';
+            } else {
+                paramsPanel.style.display = 'none';
+                colorMattingPanel.style.display = 'none';
+            }
+        }
+
+        // 批量处理相关
+        let batchImages = [];
+
+        document.getElementById('batch-upload').addEventListener('change', (event) => {
+            const files = Array.from(event.target.files);
+            if (files.length > 0) {
+                document.querySelector('.batch-preview').style.display = 'block';
+                const batchList = document.querySelector('.batch-list');
+                const scrollIndicator = document.querySelector('.scroll-indicator');
+                batchList.innerHTML = '';
+                scrollIndicator.innerHTML = '';
+                
+                files.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const div = document.createElement('div');
+                        div.className = 'batch-item';
+                        div.dataset.index = index;
+                        div.innerHTML = `
+                            <img src="${e.target.result}" alt="预览图片">
+                            <div class="batch-item-controls">
+                                <button onclick="handleBatchImage(${index}, 'rotateLeft')">向左旋转</button>
+                                <button onclick="handleBatchImage(${index}, 'rotateRight')">向右旋转</button>
+                                <button onclick="handleBatchImage(${index}, 'flipH')">水平翻转</button>
+                                <button onclick="handleBatchImage(${index}, 'flipV')">垂直翻转</button>
+                            </div>
+                        `;
+                        batchList.appendChild(div);
+                        
+                        const dot = document.createElement('div');
+                        dot.className = 'scroll-dot' + (index === 0 ? ' active' : '');
+                        scrollIndicator.appendChild(dot);
+                        
+                        batchImages[index] = {
+                            file: file,
+                            src: e.target.result,
+                            transforms: []
+                        };
+                    };
+                    reader.readAsDataURL(file);
+                });
+                
+                processButton.style.display = 'inline-block';
+                processButton.textContent = '开始处理';
+            }
+        });
+
+        function handleBatchImage(index, action) {
+            const img = document.querySelector(`.batch-item[data-index="${index}"] img`);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            
+            switch(action) {
+                case 'rotateLeft':
+            canvas.width = img.naturalHeight;
+            canvas.height = img.naturalWidth;
+            ctx.translate(canvas.width/2, canvas.height/2);
+                    ctx.rotate(-90 * Math.PI/180);
+            ctx.drawImage(img, -img.naturalWidth/2, -img.naturalHeight/2);
+                    batchImages[index].transforms.push({type: 'rotate', value: -90});
+                    break;
+                case 'rotateRight':
+                    canvas.width = img.naturalHeight;
+                    canvas.height = img.naturalWidth;
+                    ctx.translate(canvas.width/2, canvas.height/2);
+                    ctx.rotate(90 * Math.PI/180);
+                    ctx.drawImage(img, -img.naturalWidth/2, -img.naturalHeight/2);
+                    batchImages[index].transforms.push({type: 'rotate', value: 90});
+                    break;
+                case 'flipH':
+                ctx.scale(-1, 1);
+                ctx.drawImage(img, -canvas.width, 0);
+                    batchImages[index].transforms.push({type: 'flip', value: 'horizontal'});
+                    break;
+                case 'flipV':
+                ctx.scale(1, -1);
+                ctx.drawImage(img, 0, -canvas.height);
+                    batchImages[index].transforms.push({type: 'flip', value: 'vertical'});
+                    break;
+            }
+            
+            img.src = canvas.toDataURL();
+        }
+
+        const scrollLeft = document.querySelector('.scroll-left');
+        const scrollRight = document.querySelector('.scroll-right');
+        const batchList = document.querySelector('.batch-list');
+
+        scrollLeft.addEventListener('click', () => {
+            batchList.scrollBy({
+                left: -300,
+                behavior: 'smooth'
+            });
+        });
+
+        scrollRight.addEventListener('click', () => {
+            batchList.scrollBy({
+                left: 300,
+                behavior: 'smooth'
+            });
+        });
+
+        batchList.addEventListener('scroll', () => {
+            const items = document.querySelectorAll('.batch-item');
+            const dots = document.querySelectorAll('.scroll-dot');
+            const scrollPosition = batchList.scrollLeft;
+            const itemWidth = items[0]?.offsetWidth || 0;
+            
+            const activeIndex = Math.round(scrollPosition / itemWidth);
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === activeIndex);
+            });
+        });
+
+        // 初始化时设置参数面板状态
+        toggleParamsPanel();
+
+        // 修改检查认证状态的函数
+        async function checkAuth() {
+            try {
+                console.log('Checking authentication...');
+                // 先获取环境配置
+                await getEnvConfig();
+                
+                // 如果认证禁用直接隐藏密码框
+                if (!envConfig.enableAuth) {
+                    console.log('Authentication is disabled');
+                    const passwordModal = document.getElementById('password-modal');
+                    passwordModal.style.display = 'none';
+                    return;
+                }
+
+                const response = await fetch('/check-auth', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                const result = await response.json();
+                console.log('Auth check result:', result);
+                
+                const passwordModal = document.getElementById('password-modal');
+                if (response.ok) {
+                    console.log('Authentication successful');
+                    passwordModal.style.display = 'none';
+                } else {
+                    console.log('Authentication failed');
+                    passwordModal.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                // 出错时也要检查是否启用了认证
+                if (envConfig.enableAuth) {
+                    document.getElementById('password-modal').style.display = 'flex';
+                }
+            }
+        }
+
+        // 添加密码哈希函数
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // 修改密码认证函数
+        async function verifyPassword() {
+            const password = document.getElementById('password').value;
+            if (!password) {
+                alert('请输入密码');
+                return;
+            }
+
+            try {
+                let password_hash;
+                
+                // 获取环境配置
+                await getEnvConfig();
+                
+                if (envConfig.devMode) {
+                    // 开发环境：使用明文密码
+                    password_hash = password;
+                } else {
+                    // 生产环境：必须使用哈希
+                    try {
+                        password_hash = await sha256(password);
+                    } catch (error) {
+                        console.error('Hashing failed:', error);
+                        alert('您的浏览器不支持加密功能，无法在生产环境下使用');
+                        return;
+                    }
+                }
+
+                const response = await fetch('/verify-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ password_hash }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    document.querySelector('.password-modal').style.display = 'none';
+                    checkAuth();  // 更新认证状态
+                } else {
+                    alert('密码错误');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('验证失败');
+            }
+        }
+
+        function toggleBackgroundColor() {
+            const backgroundType = document.getElementById('background-type').value;
+            const backgroundColorInput = document.getElementById('background-color');
+            backgroundColorInput.style.display = backgroundType === 'color' ? 'inline-block' : 'none';
+        }
+
+        // 添加 sha256 函数定义
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+    </script>
+</body>
+</html>
+

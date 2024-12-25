@@ -1,0 +1,4 @@
+# 忽略虚拟环境和敏感文件
+.env
+.venv/
+rembg.zip

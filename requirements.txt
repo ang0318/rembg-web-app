@@ -1,0 +1,7 @@
+flask
+flask-cors
+pillow
+rembg
+onnxruntime
+python-dotenv
+numpy

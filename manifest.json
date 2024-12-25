@@ -1,0 +1,30 @@
+{
+  "name": "AI智能抠图工具",
+  "short_name": "抠图工具",
+  "description": "一个基于Python和Flask的图片抠图工具，支持AI智能抠图和颜色抠图",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3498db",
+  "icons": [
+    {
+      "src": "static/icons/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "orientation": "any",
+  "lang": "zh-CN",
+  "categories": ["productivity", "photo"],
+  "screenshots": [
+    {
+      "src": "static/screenshots/screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+
+} 
