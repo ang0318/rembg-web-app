@@ -1,4 +1,9 @@
-# rembg Web - AI智能抠图工具
+<div align="center">
+  <img src="static/icons/icon.png" width="96" height="96" alt="网站图标" style="border-radius: 16px;">
+  <h1>AI智能抠图工具</h1>
+  <p><em>基于 rembg 的在线抠图工具</em></p>
+  <hr>
+</div>
 
 一个基于Python和Flask的图片抠图工具,支持AI智能抠图和颜色抠图两种模式。
 
