@@ -129,4 +129,5 @@ curl -X POST http://localhost:5000/reload-config
 - 新的配置会在下一次请求时生效
 - 建议在低负载时进行配置更新
 
-
+## 许可证
+本项目采用 MIT 许可证，详情请查看 [LICENSE](./LICENSE) 文件。
